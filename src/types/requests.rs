@@ -24,3 +24,17 @@ pub struct UserAuthReq {
     pub username: String,
     pub password: String,
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate Get User By Id Request
+pub struct GetUserByIdReq {
+    pub user_id: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate Get User By Token Request
+pub struct GetUserByTokenReq {
+    pub token: String,
+}

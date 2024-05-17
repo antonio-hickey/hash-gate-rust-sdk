@@ -4,6 +4,8 @@ pub enum HashGateError {
     FailedSignIn,
     FailedConfig,
     NoClientToken,
+    UserNotFound,
+    ServerError,
     Uuid(uuid::Error),
     Request(reqwest::Error),
 }
@@ -14,6 +16,11 @@ impl std::fmt::Display for HashGateError {
             Self::FailedSignIn => write!(f, "Error: Sign In Attempt Failed"),
             Self::FailedConfig => write!(f, "Error: Environment Variables Not Set"),
             Self::NoClientToken => write!(f, "Error: HashGate Client Missing Auth Token"),
+            Self::UserNotFound => write!(f, "Error: User Not Found"),
+            Self::ServerError => write!(
+                f,
+                "Error: HashGate Server Ran Into Issues With Your Request"
+            ),
             Self::Uuid(e) => write!(f, "{e:?}"),
             Self::Request(e) => write!(f, "{e:?}"),
         }
