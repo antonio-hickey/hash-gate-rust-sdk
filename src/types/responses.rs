@@ -14,3 +14,10 @@ pub struct GetUserResp {
     pub user: Option<User>,
     pub was_successful: bool,
 }
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct CreatePoolResp {
+    pub user: Option<User>,
+    pub was_successful: bool,
+}
