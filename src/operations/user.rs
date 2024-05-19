@@ -53,6 +53,36 @@ impl HashGateClient {
             username,
             email,
             password,
+            group_id: None,
+        };
+
+        let resp = self.post(endpoint, &payload).await?;
+
+        if resp.status().is_success() {
+            let resp_body = resp.json::<responses::AuthResponse>().await?;
+            if let Some(token) = resp_body.token {
+                Ok(token)
+            } else {
+                Err(HashGateError::FailedSignIn)
+            }
+        } else {
+            Err(HashGateError::FailedSignIn)
+        }
+    }
+
+    pub async fn create_admin(
+        &self,
+        username: String,
+        email: Option<String>,
+        password: String,
+    ) -> Result<String, HashGateError> {
+        let endpoint = "http://localhost:8083/api/user/create";
+
+        let payload = requests::UserRegistrationReq {
+            username,
+            email,
+            password,
+            group_id: Some(1),
         };
 
         let resp = self.post(endpoint, &payload).await?;

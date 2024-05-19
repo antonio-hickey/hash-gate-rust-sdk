@@ -15,6 +15,7 @@ pub struct UserRegistrationReq {
     pub username: String,
     pub email: Option<String>,
     pub password: String,
+    pub group_id: Option<i32>,
 }
 
 #[derive(Serialize, Deserialize)]
