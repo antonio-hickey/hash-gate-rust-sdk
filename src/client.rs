@@ -87,4 +87,25 @@ impl HashGateClient {
             Err(HashGateError::NoClientToken)
         }
     }
+
+    /// Send a get request from the client to HashGate
+    pub async fn get(&self, endpoint: &str) -> Result<Response, HashGateError> {
+        if let Some(token) = &self.token {
+            match self
+                .req_client
+                .get(endpoint)
+                .header(header::AUTHORIZATION, format!("Bearer {token}"))
+                .send()
+                .await
+            {
+                Ok(resp) => Ok(resp),
+                Err(e) => {
+                    eprintln!("{e:?}");
+                    Err(HashGateError::Request(e))
+                }
+            }
+        } else {
+            Err(HashGateError::NoClientToken)
+        }
+    }
 }
