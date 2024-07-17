@@ -15,6 +15,75 @@ pub struct User {
     pub is_verified: bool,
     pub creation_date: NaiveDateTime,
     pub updated_date: NaiveDateTime,
+    pub custom_attributes: serde_json::Value,
+}
+impl User {
+    /// Set a custom attribute for a `User`
+    pub async fn set_custom_attribute(
+        &self,
+        client: &HashGateClient,
+        key: &str,
+        value: &serde_json::Value,
+    ) -> Result<(), HashGateError> {
+        let endpoint = "http://localhost:8083/api/user/set-attribute";
+
+        let payload = requests::SetUserCustomAttributeReq {
+            user_id: self.id,
+            key: key.to_string(),
+            value: value.clone(),
+        };
+
+        match client.post(endpoint, &payload).await {
+            Ok(_) => Ok(()),
+            Err(_) => Err(HashGateError::CouldNotSetAttribute),
+        }
+    }
+
+    /// Get all custom attributes for a `User`
+    pub async fn get_custom_attributes(
+        &self,
+        client: &HashGateClient,
+    ) -> Result<serde_json::Value, HashGateError> {
+        let endpoint = "http://localhost:8083/api/user/get-attributes";
+
+        let payload = requests::GetUserCustomAttributesReq { user_id: self.id };
+
+        match client.post(endpoint, &payload).await {
+            Ok(resp) => {
+                let resp_body = resp
+                    .json::<responses::GetUserCustomAttributesResp>()
+                    .await?;
+
+                Ok(resp_body.attributes)
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Get a specific custom attribute for a `User`
+    pub async fn get_custom_attribute(
+        &self,
+        client: &HashGateClient,
+        key: &str,
+    ) -> Result<serde_json::Value, HashGateError> {
+        let endpoint = "http://localhost:8083/api/user/get-attribute";
+
+        let payload = requests::GetUserCustomAttributeReq {
+            user_id: self.id,
+            key: key.to_string(),
+        };
+
+        match client.post(endpoint, &payload).await {
+            Ok(resp) => {
+                let resp_body = resp
+                    .json::<responses::GetUserCustomAttributesResp>()
+                    .await?;
+
+                Ok(resp_body.attributes)
+            }
+            Err(e) => Err(e),
+        }
+    }
 }
 
 impl HashGateClient {

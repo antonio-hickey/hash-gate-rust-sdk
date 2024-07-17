@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -38,4 +39,28 @@ pub struct GetUserByIdReq {
 /// HashGate Get User By Token Request
 pub struct GetUserByTokenReq {
     pub token: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate Set User Custom Attribute Request
+pub struct SetUserCustomAttributeReq {
+    pub user_id: Uuid,
+    pub key: String,
+    pub value: serde_json::Value,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate Get a `User`s Custom Attributes Request
+pub struct GetUserCustomAttributesReq {
+    pub user_id: Uuid,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate Get a `User`s Specific Custom Attribute Request
+pub struct GetUserCustomAttributeReq {
+    pub user_id: Uuid,
+    pub key: String,
 }
