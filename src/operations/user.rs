@@ -75,11 +75,9 @@ impl User {
 
         match client.post(endpoint, &payload).await {
             Ok(resp) => {
-                let resp_body = resp
-                    .json::<responses::GetUserCustomAttributesResp>()
-                    .await?;
+                let resp_body = resp.json::<responses::GetUserCustomAttributeResp>().await?;
 
-                Ok(resp_body.attributes)
+                Ok(resp_body.attribute)
             }
             Err(e) => Err(e),
         }
