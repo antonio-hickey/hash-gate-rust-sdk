@@ -35,3 +35,11 @@ pub struct GetUserCustomAttributeResp {
     pub attribute: serde_json::Value,
     pub was_successful: bool,
 }
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct VerifyUserEmailResp {
+    pub is_verified: bool,
+    pub message: String,
+    pub was_successful: bool,
+}

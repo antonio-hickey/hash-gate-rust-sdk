@@ -209,4 +209,30 @@ impl HashGateClient {
             Err(HashGateError::ServerError)
         }
     }
+
+    /// Verify a `User`s email address
+    pub async fn verify_user_email(
+        &self,
+        user_id: &Uuid,
+        code: &str,
+    ) -> Result<bool, HashGateError> {
+        let endpoint = "http://localhost:8083/api/user/verify-email";
+
+        let payload = requests::VerifyUserEmailReq {
+            user_id: user_id.to_owned(),
+            code: code.to_string(),
+        };
+
+        let resp = self.post(endpoint, &payload).await?;
+        if resp.status().is_success() {
+            let resp_body = resp.json::<responses::VerifyUserEmailResp>().await?;
+            if resp_body.is_verified {
+                Ok(true)
+            } else {
+                Ok(false)
+            }
+        } else {
+            Err(HashGateError::ServerError)
+        }
+    }
 }

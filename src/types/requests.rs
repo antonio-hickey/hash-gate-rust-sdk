@@ -64,3 +64,11 @@ pub struct GetUserCustomAttributeReq {
     pub user_id: Uuid,
     pub key: String,
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate Verify a `User`s Email Request
+pub struct VerifyUserEmailReq {
+    pub user_id: Uuid,
+    pub code: String,
+}
