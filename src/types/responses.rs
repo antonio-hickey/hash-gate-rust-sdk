@@ -6,6 +6,15 @@ use serde::{Deserialize, Serialize};
 pub struct AuthResponse {
     pub token: Option<String>,
     pub message: Option<String>,
+    pub was_successful: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateUserResp {
+    pub user: Option<User>,
+    pub message: Option<String>,
+    pub was_successful: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]

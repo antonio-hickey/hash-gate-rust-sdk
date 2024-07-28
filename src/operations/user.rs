@@ -1,7 +1,10 @@
 use crate::{
     client::HashGateClient,
     error::HashGateError,
-    types::{requests, responses},
+    types::{
+        requests,
+        responses::{self, CreateUserResp},
+    },
 };
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
@@ -113,7 +116,7 @@ impl HashGateClient {
         username: String,
         email: Option<String>,
         password: String,
-    ) -> Result<String, HashGateError> {
+    ) -> Result<CreateUserResp, HashGateError> {
         let endpoint = "http://localhost:8083/api/user/create";
 
         let payload = requests::UserRegistrationReq {
@@ -124,16 +127,11 @@ impl HashGateClient {
         };
 
         let resp = self.post(endpoint, &payload).await?;
-
         if resp.status().is_success() {
-            let resp_body = resp.json::<responses::AuthResponse>().await?;
-            if let Some(token) = resp_body.token {
-                Ok(token)
-            } else {
-                Err(HashGateError::FailedSignIn)
-            }
+            let resp_body = resp.json::<responses::CreateUserResp>().await?;
+            Ok(resp_body)
         } else {
-            Err(HashGateError::FailedSignIn)
+            Err(HashGateError::ServerError)
         }
     }
 

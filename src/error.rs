@@ -9,6 +9,7 @@ pub enum HashGateError {
     Uuid(uuid::Error),
     Request(reqwest::Error),
     CouldNotSetAttribute,
+    UsernameTaken,
 }
 /// Implement display trait for `HashGateError`
 impl std::fmt::Display for HashGateError {
@@ -19,6 +20,7 @@ impl std::fmt::Display for HashGateError {
             Self::NoClientToken => write!(f, "Error: HashGate Client Missing Auth Token"),
             Self::UserNotFound => write!(f, "Error: User Not Found"),
             Self::CouldNotSetAttribute => write!(f, "Error: Could Not Set User Attribute"),
+            Self::UsernameTaken => write!(f, "Error: That Username Or Email Is Already In Use"),
             Self::ServerError => write!(
                 f,
                 "Error: HashGate Server Ran Into Issues With Your Request"
