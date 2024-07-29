@@ -3,7 +3,7 @@ use crate::{
     error::HashGateError,
     types::{
         requests,
-        responses::{self, CreateUserResp},
+        responses::{self, CreateUserResp, SendVerificationEmailResp},
     },
 };
 use chrono::NaiveDateTime;
@@ -229,6 +229,26 @@ impl HashGateClient {
             } else {
                 Ok(false)
             }
+        } else {
+            Err(HashGateError::ServerError)
+        }
+    }
+
+    /// Verify a `User`s email address
+    pub async fn send_verification_email(
+        &self,
+        user_id: &Uuid,
+    ) -> Result<SendVerificationEmailResp, HashGateError> {
+        let endpoint = "http://localhost:8084/api/user/send-verification-email";
+
+        let payload = requests::SendVerificationEmailReq {
+            user_id: user_id.to_owned(),
+        };
+
+        let resp = self.post(endpoint, &payload).await?;
+        if resp.status().is_success() {
+            let resp_body = resp.json::<responses::SendVerificationEmailResp>().await?;
+            Ok(resp_body)
         } else {
             Err(HashGateError::ServerError)
         }

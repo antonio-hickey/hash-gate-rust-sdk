@@ -52,3 +52,10 @@ pub struct VerifyUserEmailResp {
     pub message: String,
     pub was_successful: bool,
 }
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct SendVerificationEmailResp {
+    pub message: String,
+    pub was_successful: bool,
+}

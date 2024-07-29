@@ -72,3 +72,10 @@ pub struct VerifyUserEmailReq {
     pub user_id: Uuid,
     pub code: String,
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate Send Verification Email to a `User` Request
+pub struct SendVerificationEmailReq {
+    pub user_id: Uuid,
+}
