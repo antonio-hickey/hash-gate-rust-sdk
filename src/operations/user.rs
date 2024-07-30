@@ -28,7 +28,7 @@ impl User {
         key: &str,
         value: &serde_json::Value,
     ) -> Result<(), HashGateError> {
-        let endpoint = "http://localhost:8083/api/user/set-attribute";
+        let endpoint = "user/set-attribute";
 
         let payload = requests::SetUserCustomAttributeReq {
             user_id: self.id,
@@ -47,7 +47,7 @@ impl User {
         &self,
         client: &HashGateClient,
     ) -> Result<serde_json::Value, HashGateError> {
-        let endpoint = "http://localhost:8083/api/user/get-attributes";
+        let endpoint = "user/get-attributes";
 
         let payload = requests::GetUserCustomAttributesReq { user_id: self.id };
 
@@ -69,7 +69,7 @@ impl User {
         client: &HashGateClient,
         key: &str,
     ) -> Result<serde_json::Value, HashGateError> {
-        let endpoint = "http://localhost:8083/api/user/get-attribute";
+        let endpoint = "user/get-attribute";
 
         let payload = requests::GetUserCustomAttributeReq {
             user_id: self.id,
@@ -93,7 +93,7 @@ impl HashGateClient {
         username: String,
         password: String,
     ) -> Result<String, HashGateError> {
-        let endpoint = "http://localhost:8083/api/user/sign-in";
+        let endpoint = "user/sign-in";
 
         let payload = requests::UserAuthReq { username, password };
 
@@ -117,7 +117,7 @@ impl HashGateClient {
         email: Option<String>,
         password: String,
     ) -> Result<CreateUserResp, HashGateError> {
-        let endpoint = "http://localhost:8083/api/user/create";
+        let endpoint = "user/create";
 
         let payload = requests::UserRegistrationReq {
             username,
@@ -141,7 +141,7 @@ impl HashGateClient {
         email: Option<String>,
         password: String,
     ) -> Result<String, HashGateError> {
-        let endpoint = "http://localhost:8083/api/user/create";
+        let endpoint = "user/create";
 
         let payload = requests::UserRegistrationReq {
             username,
@@ -166,7 +166,7 @@ impl HashGateClient {
 
     /// Get a user from their user id
     pub async fn get_user_by_id(&self, user_id: &Uuid) -> Result<User, HashGateError> {
-        let endpoint = "http://localhost:8083/api/user/get";
+        let endpoint = "user/get";
 
         let payload = requests::GetUserByIdReq {
             user_id: user_id.to_string(),
@@ -188,7 +188,7 @@ impl HashGateClient {
 
     /// Get a user from a auth token
     pub async fn get_user_by_token(&self, token: &str) -> Result<User, HashGateError> {
-        let endpoint = "http://localhost:8083/api/user/get-by-token";
+        let endpoint = "user/get-by-token";
 
         let payload = requests::GetUserByTokenReq {
             token: token.to_string(),
@@ -214,7 +214,7 @@ impl HashGateClient {
         user_id: &Uuid,
         code: &str,
     ) -> Result<bool, HashGateError> {
-        let endpoint = "http://localhost:8083/api/user/verify-email";
+        let endpoint = "user/verify-email";
 
         let payload = requests::VerifyUserEmailReq {
             user_id: user_id.to_owned(),
@@ -239,7 +239,7 @@ impl HashGateClient {
         &self,
         user_id: &Uuid,
     ) -> Result<SendVerificationEmailResp, HashGateError> {
-        let endpoint = "http://localhost:8084/api/user/send-verification-email";
+        let endpoint = "user/send-verification-email";
 
         let payload = requests::SendVerificationEmailReq {
             user_id: user_id.to_owned(),

@@ -13,6 +13,7 @@ pub struct HashGateClient {
     client_id: Uuid,
     client_secret: String,
     token: Option<String>,
+    url_base: String,
     pub req_client: reqwest::Client,
 }
 impl HashGateClient {
@@ -24,6 +25,7 @@ impl HashGateClient {
             client_id,
             client_secret: config.client_secret,
             token: None,
+            url_base: String::from("http://localhost:8083/api/"),
             req_client: reqwest::Client::new(),
         };
 
@@ -35,7 +37,7 @@ impl HashGateClient {
     /// Try to authenticate the client with HashGate
     /// NOTE: Client tokens live for 4 hours
     async fn try_authenticate(&mut self) -> Result<(), HashGateError> {
-        let hash_gate_auth_url = "http://localhost:8083/api/client/auth";
+        let client_auth_endpoint = format!("{}client/auth", self.url_base);
 
         let payload = ClientAuthReq {
             client_id: self.client_id.to_string(),
@@ -44,7 +46,7 @@ impl HashGateClient {
 
         let resp = self
             .req_client
-            .post(hash_gate_auth_url)
+            .post(client_auth_endpoint)
             .json(&payload)
             .send()
             .await?;
@@ -69,9 +71,11 @@ impl HashGateClient {
         payload: &T,
     ) -> Result<Response, HashGateError> {
         if let Some(token) = &self.token {
+            let url = format!("{}{}", self.url_base, endpoint);
+
             match self
                 .req_client
-                .post(endpoint)
+                .post(&url)
                 .json(&payload)
                 .header(header::AUTHORIZATION, format!("Bearer {token}"))
                 .send()
@@ -91,9 +95,11 @@ impl HashGateClient {
     /// Send a get request from the client to HashGate
     pub async fn get(&self, endpoint: &str) -> Result<Response, HashGateError> {
         if let Some(token) = &self.token {
+            let url = format!("{}{}", self.url_base, endpoint);
+
             match self
                 .req_client
-                .get(endpoint)
+                .get(&url)
                 .header(header::AUTHORIZATION, format!("Bearer {token}"))
                 .send()
                 .await
