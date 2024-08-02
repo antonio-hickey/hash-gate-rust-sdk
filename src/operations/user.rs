@@ -24,7 +24,7 @@ impl User {
     /// Set a custom attribute for a `User`
     pub async fn set_custom_attribute(
         &self,
-        client: &HashGateClient,
+        client: &mut HashGateClient,
         key: &str,
         value: &serde_json::Value,
     ) -> Result<(), HashGateError> {
@@ -45,7 +45,7 @@ impl User {
     /// Get all custom attributes for a `User`
     pub async fn get_custom_attributes(
         &self,
-        client: &HashGateClient,
+        client: &mut HashGateClient,
     ) -> Result<serde_json::Value, HashGateError> {
         let endpoint = "user/get-attributes";
 
@@ -66,7 +66,7 @@ impl User {
     /// Get a specific custom attribute for a `User`
     pub async fn get_custom_attribute(
         &self,
-        client: &HashGateClient,
+        client: &mut HashGateClient,
         key: &str,
     ) -> Result<serde_json::Value, HashGateError> {
         let endpoint = "user/get-attribute";
@@ -89,7 +89,7 @@ impl User {
 
 impl HashGateClient {
     pub async fn authenticate_user(
-        &self,
+        &mut self,
         username: String,
         password: String,
     ) -> Result<String, HashGateError> {
@@ -112,7 +112,7 @@ impl HashGateClient {
     }
 
     pub async fn register_user(
-        &self,
+        &mut self,
         username: String,
         email: Option<String>,
         password: String,
@@ -136,7 +136,7 @@ impl HashGateClient {
     }
 
     pub async fn create_admin(
-        &self,
+        &mut self,
         username: String,
         email: Option<String>,
         password: String,
@@ -165,7 +165,7 @@ impl HashGateClient {
     }
 
     /// Get a user from their user id
-    pub async fn get_user_by_id(&self, user_id: &Uuid) -> Result<User, HashGateError> {
+    pub async fn get_user_by_id(&mut self, user_id: &Uuid) -> Result<User, HashGateError> {
         let endpoint = "user/get";
 
         let payload = requests::GetUserByIdReq {
@@ -187,7 +187,7 @@ impl HashGateClient {
     }
 
     /// Get a user from a auth token
-    pub async fn get_user_by_token(&self, token: &str) -> Result<User, HashGateError> {
+    pub async fn get_user_by_token(&mut self, token: &str) -> Result<User, HashGateError> {
         let endpoint = "user/get-by-token";
 
         let payload = requests::GetUserByTokenReq {
@@ -210,7 +210,7 @@ impl HashGateClient {
 
     /// Verify a `User`s email address
     pub async fn verify_user_email(
-        &self,
+        &mut self,
         user_id: &Uuid,
         code: &str,
     ) -> Result<bool, HashGateError> {
@@ -236,7 +236,7 @@ impl HashGateClient {
 
     /// Verify a `User`s email address
     pub async fn send_verification_email(
-        &self,
+        &mut self,
         user_id: &Uuid,
     ) -> Result<SendVerificationEmailResp, HashGateError> {
         let endpoint = "user/send-verification-email";

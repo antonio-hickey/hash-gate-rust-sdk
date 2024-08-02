@@ -1,13 +1,14 @@
-use crate::config::HashGateConfig;
-use crate::error::HashGateError;
-use crate::types::requests::ClientAuthReq;
-use crate::types::responses::AuthResponse;
+use crate::{
+    config::HashGateConfig,
+    error::HashGateError,
+    types::{requests::ClientAuthReq, responses::AuthResponse},
+};
 use reqwest::{header, Response};
 use serde::Serialize;
 use std::str::FromStr;
 use uuid::Uuid;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// A client for interacting with your HashGate user pool.
 pub struct HashGateClient {
     client_id: Uuid,
@@ -64,52 +65,72 @@ impl HashGateClient {
         }
     }
 
+    /// Send a request to HashGate API
+    /// NOTE: This is seperated kind of as middlewear to handle re-authing the client
+    pub async fn send_request<F, T>(&mut self, request_fn: F) -> Result<Response, HashGateError>
+    where
+        F: Fn(&str) -> T,
+        T: std::future::Future<Output = Result<Response, reqwest::Error>>,
+    {
+        match request_fn(self.token.as_mut().unwrap()).await {
+            Ok(resp) => {
+                // Check if the client gets a 401 unauthorized to try and re auth the client
+                // this happens when auth token expires.
+                if resp.status() == reqwest::StatusCode::UNAUTHORIZED {
+                    println!("80: {:?}", self.token);
+                    self.try_authenticate().await?;
+                    println!("82: {:?}", self.token);
+                    let retry_response = request_fn(self.token.as_mut().unwrap()).await?;
+                    Ok(retry_response)
+                } else {
+                    Ok(resp)
+                }
+            }
+            Err(e) => Err(HashGateError::Request(e)),
+        }
+    }
+
     /// Send a post request from the client to HashGate
     pub async fn post<T: Serialize>(
-        &self,
+        &mut self,
         endpoint: &str,
         payload: &T,
     ) -> Result<Response, HashGateError> {
-        if let Some(token) = &self.token {
+        if self.token.is_some() {
             let url = format!("{}{}", self.url_base, endpoint);
+            let resp = self
+                .clone()
+                .send_request(|token| {
+                    self.req_client
+                        .post(&url)
+                        .json(&payload)
+                        .header(header::AUTHORIZATION, format!("Bearer {token}"))
+                        .send()
+                })
+                .await?;
 
-            match self
-                .req_client
-                .post(&url)
-                .json(&payload)
-                .header(header::AUTHORIZATION, format!("Bearer {token}"))
-                .send()
-                .await
-            {
-                Ok(resp) => Ok(resp),
-                Err(e) => {
-                    eprintln!("{e:?}");
-                    Err(HashGateError::Request(e))
-                }
-            }
+            Ok(resp)
         } else {
             Err(HashGateError::NoClientToken)
         }
     }
 
     /// Send a get request from the client to HashGate
-    pub async fn get(&self, endpoint: &str) -> Result<Response, HashGateError> {
-        if let Some(token) = &self.token {
+    pub async fn get(&mut self, endpoint: &str) -> Result<Response, HashGateError> {
+        if self.token.is_some() {
             let url = format!("{}{}", self.url_base, endpoint);
 
-            match self
-                .req_client
-                .get(&url)
-                .header(header::AUTHORIZATION, format!("Bearer {token}"))
-                .send()
-                .await
-            {
-                Ok(resp) => Ok(resp),
-                Err(e) => {
-                    eprintln!("{e:?}");
-                    Err(HashGateError::Request(e))
-                }
-            }
+            let resp = self
+                .clone()
+                .send_request(|token| {
+                    self.req_client
+                        .get(&url)
+                        .header(header::AUTHORIZATION, format!("Bearer {token}"))
+                        .send()
+                })
+                .await?;
+
+            Ok(resp)
         } else {
             Err(HashGateError::NoClientToken)
         }
