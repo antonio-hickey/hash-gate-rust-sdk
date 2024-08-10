@@ -21,6 +21,52 @@ pub struct User {
     pub custom_attributes: serde_json::Value,
 }
 impl User {
+    /// Try to get a `User` from a user id
+    pub async fn try_from_id(id: Uuid, client: &mut HashGateClient) -> Result<User, HashGateError> {
+        let endpoint = "user/get";
+
+        let payload = requests::GetUserByIdReq {
+            user_id: id.to_string(),
+        };
+
+        match client.post(endpoint, &payload).await {
+            Ok(resp) => {
+                let resp_body = resp.json::<responses::GetUserResp>().await?;
+                if let Some(user) = resp_body.user {
+                    Ok(user)
+                } else {
+                    Err(HashGateError::UserNotFound)
+                }
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Try to get a `User` from a auth token
+    pub async fn try_from_token(
+        token: &str,
+        client: &mut HashGateClient,
+    ) -> Result<User, HashGateError> {
+        let endpoint = "user/get-by-token";
+
+        let payload = requests::GetUserByTokenReq {
+            token: token.to_string(),
+        };
+
+        let resp = client.post(endpoint, &payload).await?;
+
+        if resp.status().is_success() {
+            let resp_body = resp.json::<responses::GetUserResp>().await?;
+            if let Some(user) = resp_body.user {
+                Ok(user)
+            } else {
+                Err(HashGateError::UserNotFound)
+            }
+        } else {
+            Err(HashGateError::ServerError)
+        }
+    }
+
     /// Set a custom attribute for a `User`
     pub async fn set_custom_attribute(
         &self,
@@ -205,50 +251,6 @@ impl HashGateClient {
             }
         } else {
             Err(HashGateError::FailedSignIn)
-        }
-    }
-
-    /// Get a user from their user id
-    pub async fn get_user_by_id(&mut self, user_id: &Uuid) -> Result<User, HashGateError> {
-        let endpoint = "user/get";
-
-        let payload = requests::GetUserByIdReq {
-            user_id: user_id.to_string(),
-        };
-
-        let resp = self.post(endpoint, &payload).await?;
-
-        if resp.status().is_success() {
-            let resp_body = resp.json::<responses::GetUserResp>().await?;
-            if let Some(user) = resp_body.user {
-                Ok(user)
-            } else {
-                Err(HashGateError::UserNotFound)
-            }
-        } else {
-            Err(HashGateError::ServerError)
-        }
-    }
-
-    /// Get a user from a auth token
-    pub async fn get_user_by_token(&mut self, token: &str) -> Result<User, HashGateError> {
-        let endpoint = "user/get-by-token";
-
-        let payload = requests::GetUserByTokenReq {
-            token: token.to_string(),
-        };
-
-        let resp = self.post(endpoint, &payload).await?;
-
-        if resp.status().is_success() {
-            let resp_body = resp.json::<responses::GetUserResp>().await?;
-            if let Some(user) = resp_body.user {
-                Ok(user)
-            } else {
-                Err(HashGateError::UserNotFound)
-            }
-        } else {
-            Err(HashGateError::ServerError)
         }
     }
 }
