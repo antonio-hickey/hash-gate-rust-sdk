@@ -12,9 +12,8 @@ repos:
     -   id: debug-statements
     -   id: check-ast
 -   repo: https://github.com/antonio-hickey/pre-commit-rust
-    rev: v1.0
+    rev: v1.0.0
     hooks:
     -   id: fmt
     -   id: cargo-check
     -   id: clippy
-
