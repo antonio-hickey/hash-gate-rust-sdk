@@ -85,6 +85,50 @@ impl User {
             Err(e) => Err(e),
         }
     }
+
+    /// Verify a `User`s email address
+    pub async fn verify_user_email(
+        &mut self,
+        client: &mut HashGateClient,
+        code: &str,
+    ) -> Result<bool, HashGateError> {
+        let endpoint = "user/verify-email";
+
+        let payload = requests::VerifyUserEmailReq {
+            user_id: self.id,
+            code: code.to_string(),
+        };
+
+        let resp = client.post(endpoint, &payload).await?;
+        if resp.status().is_success() {
+            let resp_body = resp.json::<responses::VerifyUserEmailResp>().await?;
+            if resp_body.is_verified {
+                Ok(true)
+            } else {
+                Ok(false)
+            }
+        } else {
+            Err(HashGateError::ServerError)
+        }
+    }
+
+    /// Verify a `User`s email address
+    pub async fn send_verification_email(
+        &mut self,
+        client: &mut HashGateClient,
+    ) -> Result<SendVerificationEmailResp, HashGateError> {
+        let endpoint = "user/send-verification-email";
+
+        let payload = requests::SendVerificationEmailReq { user_id: self.id };
+
+        let resp = client.post(endpoint, &payload).await?;
+        if resp.status().is_success() {
+            let resp_body = resp.json::<responses::SendVerificationEmailResp>().await?;
+            Ok(resp_body)
+        } else {
+            Err(HashGateError::ServerError)
+        }
+    }
 }
 
 impl HashGateClient {
@@ -203,52 +247,6 @@ impl HashGateClient {
             } else {
                 Err(HashGateError::UserNotFound)
             }
-        } else {
-            Err(HashGateError::ServerError)
-        }
-    }
-
-    /// Verify a `User`s email address
-    pub async fn verify_user_email(
-        &mut self,
-        user_id: &Uuid,
-        code: &str,
-    ) -> Result<bool, HashGateError> {
-        let endpoint = "user/verify-email";
-
-        let payload = requests::VerifyUserEmailReq {
-            user_id: user_id.to_owned(),
-            code: code.to_string(),
-        };
-
-        let resp = self.post(endpoint, &payload).await?;
-        if resp.status().is_success() {
-            let resp_body = resp.json::<responses::VerifyUserEmailResp>().await?;
-            if resp_body.is_verified {
-                Ok(true)
-            } else {
-                Ok(false)
-            }
-        } else {
-            Err(HashGateError::ServerError)
-        }
-    }
-
-    /// Verify a `User`s email address
-    pub async fn send_verification_email(
-        &mut self,
-        user_id: &Uuid,
-    ) -> Result<SendVerificationEmailResp, HashGateError> {
-        let endpoint = "user/send-verification-email";
-
-        let payload = requests::SendVerificationEmailReq {
-            user_id: user_id.to_owned(),
-        };
-
-        let resp = self.post(endpoint, &payload).await?;
-        if resp.status().is_success() {
-            let resp_body = resp.json::<responses::SendVerificationEmailResp>().await?;
-            Ok(resp_body)
         } else {
             Err(HashGateError::ServerError)
         }
