@@ -79,3 +79,34 @@ pub struct VerifyUserEmailReq {
 pub struct SendVerificationEmailReq {
     pub user_id: Uuid,
 }
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate Send Verification Email to a `User` Request
+pub struct UpdateUserPasswordReq {
+    pub user_id: Uuid,
+    pub new_password: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate initialize password reset Request
+pub struct InitPasswordResetReq {
+    pub email: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate initialize password reset Request
+pub struct VerifyPasswordResetReq {
+    pub verification_session_id: Uuid,
+    pub verification_code: String,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+/// HashGate reset password Request
+pub struct ResetPasswordReq {
+    pub password_reset_session_id: Uuid,
+    pub new_password: String,
+}

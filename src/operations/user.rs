@@ -2,8 +2,11 @@ use crate::{
     client::HashGateClient,
     error::HashGateError,
     types::{
-        requests,
-        responses::{self, CreateUserResp, SendVerificationEmailResp},
+        requests::{self, InitPasswordResetReq, ResetPasswordReq, VerifyPasswordResetReq},
+        responses::{
+            self, CreateUserResp, InitPasswordResetResp, ResetPasswordResp,
+            SendVerificationEmailResp, UpdateUserPasswordResp, VerifyPasswordResetResp,
+        },
     },
 };
 use chrono::NaiveDateTime;
@@ -175,6 +178,31 @@ impl User {
             Err(HashGateError::ServerError)
         }
     }
+
+    /// Update a `User`s password
+    pub async fn update_password(
+        &mut self,
+        new_password: String,
+        client: &mut HashGateClient,
+    ) -> Result<UpdateUserPasswordResp, HashGateError> {
+        let endpoint = "user/update-password";
+
+        let payload = requests::UpdateUserPasswordReq {
+            user_id: self.id,
+            new_password,
+        };
+
+        let resp = client.post(endpoint, &payload).await?;
+
+        if resp.status().is_success() {
+            let resp_body = resp.json::<UpdateUserPasswordResp>().await?;
+            Ok(resp_body)
+        } else {
+            // The only reason this can fail is due to api down I think
+            // TODO: look into above
+            Err(HashGateError::ServerError)
+        }
+    }
 }
 
 impl HashGateClient {
@@ -251,6 +279,99 @@ impl HashGateClient {
             }
         } else {
             Err(HashGateError::FailedSignIn)
+        }
+    }
+
+    /// Initialize a password reset for a user
+    ///
+    /// NOTE: You need to verify that whoever is
+    /// requesting the reset is in fact the user.
+    /// Email, or phone is recommended, but you could
+    /// self verify if you want however it's not recommended.
+    pub async fn init_password_reset(
+        &mut self,
+        email: &str,
+        client: &mut HashGateClient,
+    ) -> Result<InitPasswordResetResp, HashGateError> {
+        let endpoint = "user/init-password-reset";
+
+        let email = email.to_owned();
+        let payload = InitPasswordResetReq { email };
+
+        let resp = client.post(endpoint, &payload).await?;
+
+        if resp.status().is_success() {
+            let resp_body = resp.json::<InitPasswordResetResp>().await?;
+            Ok(resp_body)
+        } else {
+            // The only reason this can fail is due to api down I think
+            // TODO: look into above
+            Err(HashGateError::ServerError)
+        }
+    }
+
+    /// Verify password reset
+    ///
+    /// NOTE: You must have a verification session id to call this
+    /// you can obtain one from `HashGateClient::init_password_reset()`.
+    pub async fn verify_password_reset(
+        &mut self,
+        verification_session_id: &Uuid,
+        verification_code: &str,
+        client: &mut HashGateClient,
+    ) -> Result<VerifyPasswordResetResp, HashGateError> {
+        let endpoint = "user/verify-password-reset";
+
+        let verification_session_id = verification_session_id.to_owned();
+        let verification_code = verification_code.to_owned();
+
+        let payload = VerifyPasswordResetReq {
+            verification_session_id,
+            verification_code,
+        };
+
+        let resp = client.post(endpoint, &payload).await?;
+
+        if resp.status().is_success() {
+            let resp_body = resp.json::<VerifyPasswordResetResp>().await?;
+            Ok(resp_body)
+        } else {
+            // The only reason this can fail is due to api down I think
+            // TODO: look into above
+            Err(HashGateError::ServerError)
+        }
+    }
+
+    /// Reset `User` password
+    ///
+    /// NOTE: You need a password reset session id to call this, you can
+    /// obtain one by first using `HashGateClient::init_password_reset()` and
+    /// then verifying the reset with `HashGateClient::verify_password_reset()`.
+    pub async fn reset_user_password(
+        &mut self,
+        password_reset_session_id: &Uuid,
+        new_password: &str,
+        client: &mut HashGateClient,
+    ) -> Result<ResetPasswordResp, HashGateError> {
+        let endpoint = "user/reset-password";
+
+        let password_reset_session_id = password_reset_session_id.to_owned();
+        let new_password = new_password.to_owned();
+
+        let payload = ResetPasswordReq {
+            password_reset_session_id,
+            new_password,
+        };
+
+        let resp = client.post(endpoint, &payload).await?;
+
+        if resp.status().is_success() {
+            let resp_body = resp.json::<ResetPasswordResp>().await?;
+            Ok(resp_body)
+        } else {
+            // The only reason this can fail is due to api down I think
+            // TODO: look into above
+            Err(HashGateError::ServerError)
         }
     }
 }
