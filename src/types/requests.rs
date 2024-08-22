@@ -67,17 +67,17 @@ pub struct GetUserCustomAttributeReq {
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-/// HashGate Verify a `User`s Email Request
-pub struct VerifyUserEmailReq {
+/// HashGate Initialize Verification Session Request
+pub struct InitVerificationReq {
     pub user_id: Uuid,
-    pub code: String,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-/// HashGate Send Verification Email to a `User` Request
-pub struct SendVerificationEmailReq {
-    pub user_id: Uuid,
+/// HashGate Complete Verification Session Request
+pub struct VerifyReq {
+    pub verification_session_id: Uuid,
+    pub verification_code: String,
 }
 
 #[derive(Serialize, Deserialize)]

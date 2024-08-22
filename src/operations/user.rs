@@ -4,8 +4,8 @@ use crate::{
     types::{
         requests::{self, InitPasswordResetReq, ResetPasswordReq, VerifyPasswordResetReq},
         responses::{
-            self, CreateUserResp, InitPasswordResetResp, ResetPasswordResp,
-            SendVerificationEmailResp, UpdateUserPasswordResp, VerifyPasswordResetResp,
+            self, CreateUserResp, InitPasswordResetResp, InitVerificationResp, ResetPasswordResp,
+            UpdateUserPasswordResp, VerificationResp, VerifyPasswordResetResp,
         },
     },
 };
@@ -135,44 +135,21 @@ impl User {
         }
     }
 
-    /// Verify a `User`s email address
-    pub async fn verify_user_email(
+    /// Initialize a verification session for a `User`
+    ///
+    /// This code can be sent to the user in email or phone sms/call.
+    /// Use the verification session id, to then verify the code the user gives to you.
+    pub async fn init_verification(
         &mut self,
         client: &mut HashGateClient,
-        code: &str,
-    ) -> Result<bool, HashGateError> {
-        let endpoint = "user/verify-email";
+    ) -> Result<InitVerificationResp, HashGateError> {
+        let endpoint = "user/init-verification";
 
-        let payload = requests::VerifyUserEmailReq {
-            user_id: self.id,
-            code: code.to_string(),
-        };
+        let payload = requests::InitVerificationReq { user_id: self.id };
 
         let resp = client.post(endpoint, &payload).await?;
         if resp.status().is_success() {
-            let resp_body = resp.json::<responses::VerifyUserEmailResp>().await?;
-            if resp_body.is_verified {
-                Ok(true)
-            } else {
-                Ok(false)
-            }
-        } else {
-            Err(HashGateError::ServerError)
-        }
-    }
-
-    /// Verify a `User`s email address
-    pub async fn send_verification_email(
-        &mut self,
-        client: &mut HashGateClient,
-    ) -> Result<SendVerificationEmailResp, HashGateError> {
-        let endpoint = "user/send-verification-email";
-
-        let payload = requests::SendVerificationEmailReq { user_id: self.id };
-
-        let resp = client.post(endpoint, &payload).await?;
-        if resp.status().is_success() {
-            let resp_body = resp.json::<responses::SendVerificationEmailResp>().await?;
+            let resp_body = resp.json::<InitVerificationResp>().await?;
             Ok(resp_body)
         } else {
             Err(HashGateError::ServerError)
@@ -291,14 +268,13 @@ impl HashGateClient {
     pub async fn init_password_reset(
         &mut self,
         email: &str,
-        client: &mut HashGateClient,
     ) -> Result<InitPasswordResetResp, HashGateError> {
         let endpoint = "user/init-password-reset";
 
         let email = email.to_owned();
         let payload = InitPasswordResetReq { email };
 
-        let resp = client.post(endpoint, &payload).await?;
+        let resp = self.post(endpoint, &payload).await?;
 
         if resp.status().is_success() {
             let resp_body = resp.json::<InitPasswordResetResp>().await?;
@@ -318,7 +294,6 @@ impl HashGateClient {
         &mut self,
         verification_session_id: &Uuid,
         verification_code: &str,
-        client: &mut HashGateClient,
     ) -> Result<VerifyPasswordResetResp, HashGateError> {
         let endpoint = "user/verify-password-reset";
 
@@ -330,7 +305,7 @@ impl HashGateClient {
             verification_code,
         };
 
-        let resp = client.post(endpoint, &payload).await?;
+        let resp = self.post(endpoint, &payload).await?;
 
         if resp.status().is_success() {
             let resp_body = resp.json::<VerifyPasswordResetResp>().await?;
@@ -351,7 +326,6 @@ impl HashGateClient {
         &mut self,
         password_reset_session_id: &Uuid,
         new_password: &str,
-        client: &mut HashGateClient,
     ) -> Result<ResetPasswordResp, HashGateError> {
         let endpoint = "user/reset-password";
 
@@ -363,7 +337,7 @@ impl HashGateClient {
             new_password,
         };
 
-        let resp = client.post(endpoint, &payload).await?;
+        let resp = self.post(endpoint, &payload).await?;
 
         if resp.status().is_success() {
             let resp_body = resp.json::<ResetPasswordResp>().await?;
@@ -371,6 +345,28 @@ impl HashGateClient {
         } else {
             // The only reason this can fail is due to api down I think
             // TODO: look into above
+            Err(HashGateError::ServerError)
+        }
+    }
+
+    /// Complete a verification session for a `User`
+    pub async fn verify(
+        &mut self,
+        verification_session_id: Uuid,
+        code: &str,
+    ) -> Result<VerificationResp, HashGateError> {
+        let endpoint = "user/complete-verification";
+
+        let payload = requests::VerifyReq {
+            verification_session_id,
+            verification_code: code.into(),
+        };
+
+        let resp = self.post(endpoint, &payload).await?;
+        if resp.status().is_success() {
+            let resp_body = resp.json::<VerificationResp>().await?;
+            Ok(resp_body)
+        } else {
             Err(HashGateError::ServerError)
         }
     }

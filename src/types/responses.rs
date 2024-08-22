@@ -48,21 +48,6 @@ pub struct GetUserCustomAttributeResp {
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct VerifyUserEmailResp {
-    pub is_verified: bool,
-    pub message: String,
-    pub was_successful: bool,
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct SendVerificationEmailResp {
-    pub message: String,
-    pub was_successful: bool,
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
-#[serde(rename_all = "camelCase")]
 pub struct UpdateUserPasswordResp {
     pub message: String,
     pub was_successful: bool,
@@ -73,6 +58,23 @@ pub struct UpdateUserPasswordResp {
 pub struct InitPasswordResetResp {
     pub verification_session_id: Uuid,
     pub verification_code: String,
+    pub was_successful: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct InitVerificationResp {
+    pub verification_session_id: Uuid,
+    pub verification_code: String,
+    pub was_successful: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct VerificationResp {
+    pub is_verified: bool,
+    pub user_id: Option<Uuid>,
+    pub message: String,
     pub was_successful: bool,
 }
 
