@@ -26,7 +26,7 @@ impl HashGateClient {
             client_id,
             client_secret: config.client_secret,
             token: None,
-            url_base: String::from("http://localhost:8083/api/"),
+            url_base: String::from("https://hash-gate.com/api/"),
             req_client: reqwest::Client::new(),
         };
 
