@@ -1,5 +1,5 @@
-/// Hash Gate Error
 #[derive(Debug)]
+/// Hash Gate Errors
 pub enum HashGateError {
     FailedSignIn,
     FailedConfig,

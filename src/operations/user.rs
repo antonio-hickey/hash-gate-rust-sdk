@@ -14,17 +14,31 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Deserialize, Debug, Serialize, Clone)]
+/// A user within your user pool.
 pub struct User {
+    /// The uuid of the user.
     pub id: Uuid,
+
+    /// The username of the user.
     pub username: String,
+
+    /// The email of the user.
     pub email: Option<String>,
+
+    /// The verification status of the user.
     pub is_verified: bool,
+
+    /// The creation date of the user.
     pub creation_date: NaiveDateTime,
+
+    /// The last updated date for the user.
     pub updated_date: NaiveDateTime,
+
+    /// The custom attributes for the user.
     pub custom_attributes: serde_json::Value,
 }
 impl User {
-    /// Try to get a `User` from a user id
+    /// Try to get a `User` from a user id.
     pub async fn try_from_id(id: Uuid, client: &mut HashGateClient) -> Result<User, HashGateError> {
         let endpoint = "user/get";
 
@@ -45,7 +59,7 @@ impl User {
         }
     }
 
-    /// Try to get a `User` from a auth token
+    /// Try to get a `User` from a auth token.
     pub async fn try_from_token(
         token: &str,
         client: &mut HashGateClient,
@@ -70,7 +84,7 @@ impl User {
         }
     }
 
-    /// Set a custom attribute for a `User`
+    /// Set a custom attribute for the `User`.
     pub async fn set_custom_attribute(
         &self,
         client: &mut HashGateClient,
@@ -91,7 +105,7 @@ impl User {
         }
     }
 
-    /// Get all custom attributes for a `User`
+    /// Get all custom attributes for the `User`.
     pub async fn get_custom_attributes(
         &self,
         client: &mut HashGateClient,
@@ -112,7 +126,7 @@ impl User {
         }
     }
 
-    /// Get a specific custom attribute for a `User`
+    /// Get a specific custom attribute for the `User`.
     pub async fn get_custom_attribute(
         &self,
         client: &mut HashGateClient,
@@ -135,7 +149,7 @@ impl User {
         }
     }
 
-    /// Initialize a verification session for a `User`
+    /// Initialize a verification session for the `User`.
     ///
     /// This code can be sent to the user in email or phone sms/call.
     /// Use the verification session id, to then verify the code the user gives to you.
@@ -156,7 +170,7 @@ impl User {
         }
     }
 
-    /// Update a `User`s password
+    /// Update the `User`s password.
     pub async fn update_password(
         &mut self,
         new_password: String,
@@ -183,6 +197,7 @@ impl User {
 }
 
 impl HashGateClient {
+    /// Authenticate a user in your user pool with a given username and password.
     pub async fn authenticate_user(
         &mut self,
         username: String,
@@ -206,6 +221,7 @@ impl HashGateClient {
         }
     }
 
+    /// Register a user into your user pool.
     pub async fn register_user(
         &mut self,
         username: String,
@@ -230,6 +246,7 @@ impl HashGateClient {
         }
     }
 
+    /// Create an admin user in your user pool.
     pub async fn create_admin(
         &mut self,
         username: String,
@@ -259,7 +276,7 @@ impl HashGateClient {
         }
     }
 
-    /// Initialize a password reset for a user
+    /// Initialize a password reset for a user.
     ///
     /// NOTE: You need to verify that whoever is
     /// requesting the reset is in fact the user.
@@ -286,7 +303,9 @@ impl HashGateClient {
         }
     }
 
-    /// Verify password reset
+    /// Verify a password reset session for a user. This is the second step
+    /// in the password reset process, where the user proves they are in fact
+    /// the user through a verification code sent to their email or phone.
     ///
     /// NOTE: You must have a verification session id to call this
     /// you can obtain one from `HashGateClient::init_password_reset()`.
@@ -317,7 +336,8 @@ impl HashGateClient {
         }
     }
 
-    /// Reset `User` password
+    /// Reset a users password, this is the final step in the password
+    /// reset process.
     ///
     /// NOTE: You need a password reset session id to call this, you can
     /// obtain one by first using `HashGateClient::init_password_reset()` and
@@ -349,7 +369,7 @@ impl HashGateClient {
         }
     }
 
-    /// Complete a verification session for a `User`
+    /// Complete a verification session for the `User`.
     pub async fn verify(
         &mut self,
         verification_session_id: Uuid,
